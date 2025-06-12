@@ -22,7 +22,8 @@ clock = pygame.time.Clock()
 
 GREEN = (50, 205, 50)
 WHITE = (255, 255, 255)
-
+BLUE = (0, 0, 255)
+PURPLE = (160, 32, 240)
 
 #Various Global Variables
 Player_Width = 32
@@ -83,6 +84,9 @@ class Player(pygame.sprite.Sprite):
                     self.rect.bottom = platform.rect.top
                     self.vel_y = 0
                     self.on_ground = True
+                if self.vel_y < 0:
+                    self.vel_y = 0
+                    self.rect.top = platform.rect.bottom
 
 
 
@@ -98,8 +102,26 @@ class FakeCheckpoint(GameObject):
 
 
 
-class EndGoal(GameObject):
-    pass
+class Portal(pygame.sprite.Sprite):
+    def __init__(self, x, y, width, height):
+        super().__init__()
+        self.image = pygame.Surface((width, height))
+        self.image.fill(BLUE)
+        self.rect = self.image.get_rect()
+        self.rect.topleft = (x, y)
+
+    def check_collision(self, player):
+        return self.rect.colliderect(player.rect)
+
+
+
+class Gurterade(Portal):
+    def __init__(self, x, y, width, height):
+        super().__init__(x, y, width, height)
+        self.image = pygame.Surface((width, height))
+        self.image.fill(PURPLE) #Replace with the actual image
+        self.rect = self.image.get_rect()
+        self.rect.topleft = (x, y)
 
 
 
@@ -113,7 +135,9 @@ class Platform(pygame.sprite.Sprite):
 
 
 
-class Portal(GameObject): # going to delay this until like the end probably
+
+
+class Teleporter(GameObject): # going to delay this until like the end probably
     pass
 
 
@@ -130,6 +154,7 @@ class Level:
         self.platform_group = pygame.sprite.Group()
         self.portal = None
         self.lava = None
+        self.gurterade = None
         self.load_level()
 
     def load_level(self):
@@ -142,8 +167,25 @@ class Level:
                 Platform(700, 575, 120, 20)
 
             ]
-            #self.portal = Portal(850, 550, 75, 75)
-        self.platform_group = pygame.sprite.Group(self.platforms)# + [self.portal])
+            self.portal = Portal(850, 550, 75, 75)
+            self.gurterade = Gurterade (800, 350, 50, 50)
+
+        if self.current_level == 2:
+            #Platform(X, Y, Height, Width)
+            self.platforms = [ #Placeholder variables
+                Platform(0, HEIGHT - 20, WIDTH, 20),
+                Platform(400, 600, 100, 20),
+                Platform(300, 475, 120, 20)
+
+            ]
+            self.portal = Portal(850, 550, 75, 75)
+
+        self.platform_group = pygame.sprite.Group((self.platforms) + [self.portal] + [self.gurterade])
+
+    
+    def next_level(self):
+        self.current_level += 1
+        self.load_level()
 
 
 
@@ -153,6 +195,8 @@ class Level:
 def main():
     player = Player(100, HEIGHT - Player_Height - 100) #This will be over-riden and maybe deleted 
     player_group = pygame.sprite.Group(player)
+    
+    gerteradeCollected = False
 
     level = Level()
     running = True
@@ -165,6 +209,18 @@ def main():
                 running = False
 
         player_group.update(level.platforms) #Update player
+
+        if level.gurterade.check_collision(player):
+            gerteradeCollected = True # Update later to work
+
+        if gerteradeCollected == True:
+            if level.portal.check_collision(player):
+                player.rect.x = 100
+                player.rect.y = 500
+                player.vel_y = 0
+                gerteradeCollected = False
+                level.next_level()
+
 
         # Draw
         win.fill(WHITE)
