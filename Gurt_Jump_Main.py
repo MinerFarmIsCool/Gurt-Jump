@@ -16,7 +16,7 @@ pygame.init()
 #Game setup:
 WIDTH, HEIGHT = 1280, 720
 win = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("GURT JUMP WOOOOOOO! Level: " )
+pygame.display.set_caption(f"GURT JUMP WOOOOOOO! Level: ")
 FPS = 30
 clock = pygame.time.Clock()
 
@@ -208,12 +208,7 @@ class Level:
 
         if self.gurterade: # Only makes the group if gurterade exists (kinda useless but might do something with it later)
             self.gurterade_group = pygame.sprite.Group(self.gurterade)
-
-
-
-
-
-    
+ 
     def next_level(self, player):
         self.current_level += 1
         player.Player_Respawn(self)
@@ -242,8 +237,9 @@ def main():
 
         for spike in level.spikes:
             if player.rect.colliderect(spike.rect): 
-                running = False
-                pygame.quit
+                level.load_level()
+                player.Player_Respawn(level)
+
 
         if level.gurterade.check_collision(player):
             level.gerteradeCollected = True # Update later to work
@@ -273,5 +269,3 @@ main()
 
 pygame.quit()
 sys.exit()
-
-
