@@ -26,6 +26,8 @@ WHITE = (255, 255, 255)
 BLUE = (0, 0, 255)
 PURPLE = (160, 32, 240)
 RED = (255, 0, 0)
+ORANGE = (100, 64, 0)
+LIGHT_BLUE = (173, 216, 230)
 
 #Various Global Variables
 Player_Width = 32
@@ -138,10 +140,23 @@ class Platform(pygame.sprite.Sprite):
 
 
 
+class First_Teleporter(Portal): 
+    def __init__(self, x, y, width, height):
+        super().__init__(x, y, width, height)
+        self.image = pygame.Surface((width, height))
+        self.image.fill(LIGHT_BLUE)
+        self.rect = self.image.get_rect()
+        self.rect.topleft = (x, y)
 
 
-class Teleporter(): # going to delay this until like the end probably
-    pass
+
+class Second_Teleporter(Portal): 
+    def __init__(self, x, y, width, height):
+        super().__init__(x, y, width, height)
+        self.image = pygame.Surface((width, height))
+        self.image.fill(ORANGE)
+        self.rect = self.image.get_rect()
+        self.rect.topleft = (x, y)
 
 
 
@@ -159,6 +174,8 @@ class Level:
         self.lava = None
         self.gurterade = None
         self.spikes = []
+        self.first_teleporter = None
+        self.second_teleporter = None
         self.load_level()
         self.gerteradeCollected = False
 
@@ -166,6 +183,8 @@ class Level:
         self.platforms = []
         self.spikes = []
         self.gurterade = None
+        self.first_teleporter = None
+        self.second_teleporter = None
         self.gerteradeCollected = False
         if self.current_level == 1:
             #Platform(X, Y, Height, Width)
@@ -176,7 +195,8 @@ class Level:
             ]
             self.portal = Portal(850, 550, 75, 75)
             self.gurterade = Gurterade(800, 350, 50, 50)
-
+            self.first_teleporter = First_Teleporter(400, 400, 40, 40)
+            self.second_teleporter = Second_Teleporter(300, 300, 40, 40)
 
         if self.current_level == 2:
             #Platform(X, Y, Height, Width)
@@ -208,6 +228,10 @@ class Level:
 
         if self.gurterade: # Only makes the group if gurterade exists (kinda useless but might do something with it later)
             self.gurterade_group = pygame.sprite.Group(self.gurterade)
+        if self.first_teleporter and self.second_teleporter:
+            self.teleporter_group = pygame.sprite.Group([self.first_teleporter] + [self.second_teleporter])
+        else:
+            self.teleporter_group = None
  
     def next_level(self, player):
         self.current_level += 1
@@ -217,6 +241,9 @@ class Level:
 
 
 
+class timer():
+    def __init__(self):
+        pass
 
 #Game
 def main():
@@ -249,15 +276,23 @@ def main():
             if level.portal.check_collision(player):
                 level.next_level(player)
 
+        if level.first_teleporter.check_collision(player):
+            player.rect.x = level.second_teleporter.rect.x 
+            player.rect.y = level.second_teleporter.rect.y
+            player.vel_y = 0
 
         # Draw
         win.fill(WHITE)
-        player_group.draw(win) #Draw player
         level.platform_group.draw(win) #Draw Platforms
         try:
             level.gurterade_group.draw(win) # Draw gurterade
         except:
             pass
+        try:
+            level.teleporter_group.draw(win)
+        except:
+            pass
+        player_group.draw(win) #Draw player LAST
         pygame.display.flip()  # Update the display
 
 
