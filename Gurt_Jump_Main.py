@@ -1,6 +1,6 @@
 #Coding notes: we should program stuff in linear progression of the game
 #This meaning like we program everything for level 1 first, then everything for level 2, and so on
-
+#place the py file in gurt file
 #Importing Functions
 import pygame
 import random
@@ -13,7 +13,7 @@ from tkinter import messagebox
 pygame.init()
 
 #Game setup:
-WIDTH, HEIGHT = 1280, 720
+WIDTH, HEIGHT = 1024, 720
 win = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption(f"GURT JUMP WOOOOOOO! Level: ")
 bg = pygame.image.load("gurt level 1\pixil-layer-0.png")
@@ -22,7 +22,7 @@ bg = pygame.image.load("gurt level 1\pixil-layer-0.png")
 
 FPS = 30
 clock = pygame.time.Clock()
-scrn = pygame.display.set_mode((1280, 720))
+scrn = pygame.display.set_mode((1024, 720))
 import pygame
 
 
@@ -37,8 +37,8 @@ ORANGE = (100, 64, 0)
 LIGHT_BLUE = (173, 216, 230)
 
 #Various Global Variables
-Player_Width = 32
-Player_Height = 32
+Player_Width = 200
+Player_Height = 200
 Player_Speed = 20
 Jump_Strength = -20
 Gravity = 1
@@ -54,6 +54,7 @@ class Player(pygame.sprite.Sprite):
         super().__init__()
         self.image = pygame.image.load("the gurt.png")
         #self.image.fill("pixil-layer-gurt 30x24.png")
+        self.image = pygame.transform.scale(self.image, (64, 64))
         self.rect = self.image.get_rect()
         self.rect.topleft = (x, y)
         self.vel_y = 0
@@ -96,7 +97,13 @@ class Player(pygame.sprite.Sprite):
             self.rect.y = 600
             self.vel_y = 0
 
-
+class Background(pygame.sprite.Sprite):
+  def __init__(self, x, y, width, height):
+        super().__init__()
+        self.image = pygame.Surface((width, height))
+        self.image = pygame.image.load("level 1.png")
+        self.rect = self.image.get_rect()
+        self.rect.topleft = (x, y)
 
 class FakeCheckpoint():
     pass
@@ -122,6 +129,7 @@ class Gurterade(Portal):
         super().__init__(x, y, width, height)
         #self.image = pygame.Surface((width, height))
         self.image = pygame.image.load("gurtarade.png")
+        self.image = pygame.transform.scale(self.image, (64, 64))
         self.rect = self.image.get_rect()
         self.rect.topleft = (x, y)
 
@@ -183,11 +191,13 @@ class Level:
         self.spikes = []
         self.first_teleporter = None
         self.second_teleporter = None
+        self.background = None
         self.load_level()
         self.gerteradeCollected = False
-        self.image = pygame.image.load("pixil-frame-0 (2).png")
+      
         
     def load_level(self): # Loads the level, first by settting variables back to default, then making them again to 'craft' the level
+        
         self.platforms = []
         self.spikes = []
         self.gurterade = None
@@ -198,14 +208,14 @@ class Level:
             #Platform(X, Y, Height, Width)
             self.platforms = [ #Placeholder variables
                 Platform(0, HEIGHT - 20, WIDTH, 20),
-                Platform(500, 700, 100, 20),
+                Platform(590, 455, 0, 0),
                 Platform(700, 575, 120, 20)
             ]
             self.portal = Portal(850, 550, 75, 75)
             self.gurterade = Gurterade(800, 350, 50, 50)
             self.first_teleporter = First_Teleporter(400, 400, 40, 40)
             self.second_teleporter = Second_Teleporter(300, 300, 40, 40)
-
+            self.background = Background(0,0, 1080, 720)
         if self.current_level == 2:
             #Platform(X, Y, Height, Width)
             self.platforms = [ #Placeholder variables
@@ -240,6 +250,7 @@ class Level:
             self.teleporter_group = pygame.sprite.Group([self.first_teleporter] + [self.second_teleporter])
         else:
             self.teleporter_group = None
+        self.background_group = pygame.sprite.Group(self.background)
  
     def next_level(self, player):
         self.current_level += 1
@@ -294,6 +305,8 @@ def main():
 
         # Draw
         win.fill(WHITE)
+        level.background_group.draw(win)
+        
         level.platform_group.draw(win) #Draw Platforms
         try:
             level.gurterade_group.draw(win) # Draw gurterade
