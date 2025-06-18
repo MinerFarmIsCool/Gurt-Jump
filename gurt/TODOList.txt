@@ -1,7 +1,0 @@
-Only rough order | To add more to
-
-1. Make the levels
-2. Add teleporter
-3. Import all the sprites
-4. Implement jump pad and fake checkpoints
-5. Add x velocity
