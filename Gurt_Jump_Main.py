@@ -10,16 +10,23 @@ import tkinter as tk
 from tkinter import messagebox
 
 
-
 pygame.init()
 
 #Game setup:
 WIDTH, HEIGHT = 1280, 720
 win = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption(f"GURT JUMP WOOOOOOO! Level: ")
+bg = pygame.image.load("gurt level 1\pixil-layer-0.png")
+
+#INSIDE OF THE GAME LOOP
+
 FPS = 30
 clock = pygame.time.Clock()
+scrn = pygame.display.set_mode((1280, 720))
+import pygame
 
+
+imp = pygame.image.load("pixil-layer-gurt 30x24.png").convert()
 #Various placeholder colours
 GREEN = (50, 205, 50)
 WHITE = (255, 255, 255)
@@ -45,8 +52,8 @@ Gravity = 1
 class Player(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()
-        self.image = pygame.Surface((Player_Width, Player_Height))
-        self.image.fill(GREEN)
+        self.image = pygame.image.load("the gurt.png")
+        #self.image.fill("pixil-layer-gurt 30x24.png")
         self.rect = self.image.get_rect()
         self.rect.topleft = (x, y)
         self.vel_y = 0
@@ -113,8 +120,8 @@ class Portal(pygame.sprite.Sprite): # Also used as master class for some classes
 class Gurterade(Portal):
     def __init__(self, x, y, width, height):
         super().__init__(x, y, width, height)
-        self.image = pygame.Surface((width, height))
-        self.image.fill(PURPLE) #Replace with the actual image
+        #self.image = pygame.Surface((width, height))
+        self.image = pygame.image.load("gurtarade.png")
         self.rect = self.image.get_rect()
         self.rect.topleft = (x, y)
 
@@ -144,7 +151,7 @@ class First_Teleporter(Portal):
     def __init__(self, x, y, width, height):
         super().__init__(x, y, width, height)
         self.image = pygame.Surface((width, height))
-        self.image.fill(LIGHT_BLUE)
+        self.image = pygame.image.load("blue port.png")
         self.rect = self.image.get_rect()
         self.rect.topleft = (x, y)
 
@@ -154,7 +161,7 @@ class Second_Teleporter(Portal):
     def __init__(self, x, y, width, height):
         super().__init__(x, y, width, height)
         self.image = pygame.Surface((width, height))
-        self.image.fill(ORANGE)
+        self.image = pygame.image.load("small port 1.png")
         self.rect = self.image.get_rect()
         self.rect.topleft = (x, y)
 
@@ -178,7 +185,8 @@ class Level:
         self.second_teleporter = None
         self.load_level()
         self.gerteradeCollected = False
-
+        self.image = pygame.image.load("pixil-frame-0 (2).png")
+        
     def load_level(self): # Loads the level, first by settting variables back to default, then making them again to 'craft' the level
         self.platforms = []
         self.spikes = []
@@ -276,10 +284,13 @@ def main():
             if level.portal.check_collision(player):
                 level.next_level(player)
 
-        if level.first_teleporter.check_collision(player):
-            player.rect.x = level.second_teleporter.rect.x 
-            player.rect.y = level.second_teleporter.rect.y
-            player.vel_y = 0
+        try:
+            if level.first_teleporter.check_collision(player):
+                player.rect.x = level.second_teleporter.rect.x 
+                player.rect.y = level.second_teleporter.rect.y
+                player.vel_y = 0
+        except:
+            pass
 
         # Draw
         win.fill(WHITE)
