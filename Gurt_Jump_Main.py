@@ -109,9 +109,9 @@ class Player(pygame.sprite.Sprite):
             self.rect.x = 100
             self.rect.y = 600
             self.vel_y = 0
-        if level.current_level == 3:
-            self.rect.x = 100
-            self.rect.y = 600
+     if level.current_level == 3:
+            self.rect.x = 218
+            self.rect.y = 71
             self.vel_y = 0
 
 
