@@ -19,6 +19,7 @@ win = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption(f"GURT JUMP WOOOOOOO! Level: ")
 FONT = pygame.font.SysFont("comisans", 40)
 
+
 #INSIDE OF THE GAME LOOP
 
 FPS = 30
@@ -216,7 +217,7 @@ class Jumppad(Portal):
 class Level:
     def __init__(self):
         #self.current_level = 1
-        self.current_level = 4 #For testing only
+        self.current_level = 1 #For testing only
         self.platforms = []
         self.platform_group = pygame.sprite.Group()
         self.portal = None
@@ -304,7 +305,11 @@ class Level:
             self.background = Background(0,0, 1080, 720)
             self.jumppad = Jumppad(326, 430, 30, 35)
 
-        self.platform_group = pygame.sprite.Group((self.platforms) + [self.jumppad] + (self.spikes))
+        if self.jumppad:
+            self.platform_group = pygame.sprite.Group((self.platforms) + [self.jumppad] + (self.spikes))
+        else:
+            self.platform_group = pygame.sprite.Group((self.platforms) + (self.spikes))
+
         self.portal_group = pygame.sprite.Group(self.portal)
         if self.gurterade: # Only makes the group if gurterade exists (kinda useless but might do something with it later)
             self.gurterade_group = pygame.sprite.Group(self.gurterade)
@@ -335,6 +340,15 @@ def main():
     player = Player(10, 10) #This will be over-riden and maybe deleted 
     player_group = pygame.sprite.Group(player)
 
+
+
+    timer_font = pygame.font.SysFont("comisans", 40)
+    timer_sec = 60
+    timer_text = timer_font.render("01:00", True, (0, 0, 0))
+    timer = pygame.USEREVENT + 1                                                
+    pygame.time.set_timer(timer, 1000)
+
+
     level = Level()
     running = True
 
@@ -344,6 +358,14 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+            if event.type == timer:    # checks for timer event
+                if timer_sec > 0:
+                    timer_sec -= 1
+                    timer_text = timer_font.render(f"00:{timer_sec:02d}", True, (0, 0, 0))
+                    if timer_sec == 0:
+                        running = False
+                else:
+                    pygame.time.set_timer(timer, 0)    # turns off timer event
 
         player_group.update(level.platforms, level) #Update player
 
@@ -404,6 +426,7 @@ def main():
 
         coor = FONT.render(f"Coordinates: {player.rect.x}, {player.rect.y}", True, (0, 0, 0))
         win.blit(coor, (700, 100))
+        win.blit(timer_text, (30, 30))
 
         pygame.display.flip()  # Update the display
 
