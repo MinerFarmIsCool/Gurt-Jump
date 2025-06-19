@@ -35,6 +35,7 @@ PURPLE = (160, 32, 240)
 RED = (255, 0, 0)
 ORANGE = (100, 64, 0)
 LIGHT_BLUE = (173, 216, 230)
+MAGENTA = (255, 0, 255)
 
 #Various Global Variables
 Player_Width = 200
@@ -127,6 +128,8 @@ class Background(pygame.sprite.Sprite):
             self.image = pygame.image.load("pixil-frame-0_4.png")
         if level.current_level == 3:
             self.image = pygame.image.load("level 3.png")
+        if level.current_level == 4:
+            self.image = pygame.image.load("pixil-frame-0_4.png")
 
 
 
@@ -200,15 +203,20 @@ class Second_Teleporter(Portal):
 
 
 
-class Jumppad(): 
-    pass
+class Jumppad(Portal): 
+    def __init__(self, x, y, width, height):
+        super().__init__(x, y, width, height)
+        self.image = pygame.Surface((width, height))
+        self.image.fill(MAGENTA)
+        self.rect = self.image.get_rect()
+        self.rect.topleft = (x, y)
 
 
 
 class Level:
     def __init__(self):
         #self.current_level = 1
-        self.current_level = 3 #For testing only
+        self.current_level = 4 #For testing only
         self.platforms = []
         self.platform_group = pygame.sprite.Group()
         self.portal = None
@@ -218,7 +226,7 @@ class Level:
         self.first_teleporter = None
         self.second_teleporter = None
         self.background = None
-        
+        self.jumppad = None
         self.load_level()
         self.gerteradeCollected = False
       
@@ -231,6 +239,7 @@ class Level:
         self.first_teleporter = None
         self.second_teleporter = None
         self.gerteradeCollected = False
+        self.jumppad = None
         if self.current_level == 1:
             
             #Platform(X, Y, Width, Height)
@@ -271,18 +280,31 @@ class Level:
                 Platform(0, HEIGHT - 20, WIDTH, 20),
                 Platform(400, 600, 100, 20),
                 Platform(300, 475, 120, 20),
-
-
             ]
             self.portal = Portal(850, 550, 75, 75)
             self.spikes = [
                 Spikes(650, 650, 75, 75)
-
             ]
             self.gurterade = Gurterade(800, 350, 50, 50)
             self.background = Background(0,0, 1080, 720)
+        if self.current_level == 4:
+            #Platform(X, Y, Width, Height)
+            self.platforms = [ #Placeholder variables
+                Platform(0, 604, 185, 48),
+                Platform(26, 265, 300, 48),
+                Platform(163, 463, 300, 48),
+                Platform(493, 341, 300, 48),
+                Platform(876, 620, 300, 48)
+            ]
+            self.spikes = [
+                Spikes(-1000, 740, 102400, 10) #This spike is to kill the player when they "fall out of the map."
+            ]
+            self.portal = Portal(903, 556, 75, 75)
+            self.gurterade = Gurterade(80, 202, 50, 50)
+            self.background = Background(0,0, 1080, 720)
+            self.jumppad = Jumppad(326, 430, 30, 35)
 
-        self.platform_group = pygame.sprite.Group((self.platforms) +  (self.spikes))
+        self.platform_group = pygame.sprite.Group((self.platforms) + [self.jumppad] + (self.spikes))
         self.portal_group = pygame.sprite.Group(self.portal)
         if self.gurterade: # Only makes the group if gurterade exists (kinda useless but might do something with it later)
             self.gurterade_group = pygame.sprite.Group(self.gurterade)
@@ -344,6 +366,13 @@ def main():
                 player.rect.x = level.second_teleporter.rect.x 
                 player.rect.y = level.second_teleporter.rect.y
                 player.vel_y = 0
+        except:
+            pass
+
+        try:
+            if level.jumppad.check_collision(player):
+                player.vel_y += (Jump_Strength * 5)
+                player.on_ground = False
         except:
             pass
 
