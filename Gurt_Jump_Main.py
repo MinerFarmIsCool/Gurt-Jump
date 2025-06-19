@@ -294,7 +294,7 @@ class Level:
                 Spikes(746, 268, 307, 51),
                 Spikes(367, 330, 53, 57),
                 Spikes(101, 424, 52, 51),
-                Spikes(490, 543, 86, 55),
+                
                         ]
             self.gurterade = Gurterade(800, 350, 50, 50)
             self.background = Background(0,0, 1080, 720)
