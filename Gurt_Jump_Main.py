@@ -120,17 +120,17 @@ class Background(pygame.sprite.Sprite):
     def __init__(self, x, y, width, height):
         super().__init__()
         self.image = pygame.Surface((width, height))
-        self.image = pygame.image.load("pixil-frame-0_3.png")
+        self.image = pygame.image.load("level 1.png")
         self.rect = self.image.get_rect()
         self.rect.topleft = (x, y)
 
     def set_background_image(self, level):
         if level.current_level == 2:
-            self.image = pygame.image.load("pixil-frame-0_4.png")
+            self.image = pygame.image.load("level 2.png")
         if level.current_level == 3:
             self.image = pygame.image.load("level 3.png")
         if level.current_level == 4:
-            self.image = pygame.image.load("pixil-frame-0_4.png")
+            self.image = pygame.image.load("level 4.png")
 
 
 
@@ -275,7 +275,7 @@ class Level:
             self.portal = Portal(903, 556, 75, 75)
             self.gurterade = Gurterade(80, 202, 50, 50)
             self.background = Background(0,0, 1080, 720)
-         if self.current_level == 3:
+        if self.current_level == 3:
             #Platform(X, Y, Width, Height)
             self.platforms = [ #Placeholder variables
                 Platform(0, HEIGHT - 20, WIDTH, 20),
