@@ -275,19 +275,31 @@ class Level:
             self.portal = Portal(903, 556, 75, 75)
             self.gurterade = Gurterade(80, 202, 50, 50)
             self.background = Background(0,0, 1080, 720)
-        if self.current_level == 3:
+         if self.current_level == 3:
             #Platform(X, Y, Width, Height)
             self.platforms = [ #Placeholder variables
                 Platform(0, HEIGHT - 20, WIDTH, 20),
-                Platform(400, 600, 100, 20),
-                Platform(300, 475, 120, 20),
+                Platform(148, 122, 306, 49),
+                Platform(405, 1, 46, 167),
+                Platform(-1, 475, 280, 50),
+                Platform(279, 384, 179, 43),
+                Platform(424, 289, 297, 55),
+                Platform(727, 319, 300, 49),
+                Platform(393, 598, 301, 52),
+                Platform(787, 627, 294, 52),
             ]
             self.portal = Portal(850, 550, 75, 75)
             self.spikes = [
-                Spikes(650, 650, 75, 75)
-            ]
+                Spikes(373, -3, 32, 120),
+                Spikes(746, 268, 307, 51),
+                Spikes(367, 330, 53, 57),
+                Spikes(101, 424, 52, 51),
+                Spikes(490, 543, 86, 55),
+                        ]
             self.gurterade = Gurterade(800, 350, 50, 50)
             self.background = Background(0,0, 1080, 720)
+            self.first_teleporter = First_Teleporter(693, 128, 92, 147)
+            self.second_teleporter = Second_Teleporter(331, 457, 108, 140)
         if self.current_level == 4:
             #Platform(X, Y, Width, Height)
             self.platforms = [ #Placeholder variables
