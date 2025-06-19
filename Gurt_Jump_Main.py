@@ -53,29 +53,40 @@ class Player(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()
         self.image = pygame.image.load("the gurt.png")
-        #self.image.fill("pixil-layer-gurt 30x24.png")
         self.image = pygame.transform.scale(self.image, (64, 64))
         self.rect = self.image.get_rect()
         self.rect.topleft = (x, y)
         self.vel_y = 0
         self.on_ground = False
 
-    # Edit this so velocity slowly increases as you hold BUT CAPS OUT AT A MAX VELOCITY
     def update(self, platforms, level):
         keys = pygame.key.get_pressed()
+        dx = 0
+        dy = self.vel_y
+
         if keys[pygame.K_LEFT] and self.rect.x > 0:
-            self.rect.x -= Player_Speed
+            dx -= Player_Speed
         if keys[pygame.K_RIGHT]:
-            self.rect.x += Player_Speed
+            dx += Player_Speed
         if keys[pygame.K_UP] and self.on_ground:
-            self.vel_y = Jump_Strength 
+            self.vel_y = Jump_Strength
             self.on_ground = False
 
         # Apply gravity
-        self.vel_y += Gravity 
-        self.rect.y += self.vel_y 
+        self.vel_y += Gravity
+        dy = self.vel_y
 
-        # Check for collisions
+        # Horizontal movement and collision
+        self.rect.x += dx
+        for platform in platforms:
+            if self.rect.colliderect(platform.rect):
+                if dx > 0:  # Moving right; Hit the left side of the platform
+                    self.rect.right = platform.rect.left
+                if dx < 0:  # Moving left; Hit the right side of the platform
+                    self.rect.left = platform.rect.right
+
+        # Vertical movement and collision
+        self.rect.y += dy
         self.on_ground = False
         for platform in platforms:
             if self.rect.colliderect(platform.rect):
@@ -83,13 +94,11 @@ class Player(pygame.sprite.Sprite):
                     self.rect.bottom = platform.rect.top
                     self.vel_y = 0
                     self.on_ground = True
-                if self.vel_y < 0: # Headbutting (slightly buggy)
-                    self.vel_y = 0
+                elif self.vel_y < 0:  # Jumping up
                     self.rect.top = platform.rect.bottom
+                    self.vel_y = 0
 
-
-
-    def Player_Respawn(self, level): # Sets the players x/y coords according to what level they are in, also sets velocity to 0
+    def Player_Respawn(self, level):
         if level.current_level == 1:
             self.rect.x = 10
             self.rect.y = 10
@@ -102,6 +111,8 @@ class Player(pygame.sprite.Sprite):
             self.rect.x = 100
             self.rect.y = 600
             self.vel_y = 0
+
+
 
 class Background(pygame.sprite.Sprite):
     def __init__(self, x, y, width, height):
@@ -117,21 +128,16 @@ class Background(pygame.sprite.Sprite):
 
 
 
-        
-
 class FakeCheckpoint():
     pass
 
 
 
-class Portal(pygame.sprite.Sprite): # Also used as master class for some classes
-    # Subclasses = Gurterade
+class Portal(pygame.sprite.Sprite):
     def __init__(self, x, y, width, height):
         super().__init__()
-        #self.image = pygame.Surface((width, height))
         self.image = pygame.image.load("checkpoint.png")
         self.image = pygame.transform.scale(self.image, (64, 64))
-
         self.rect = self.image.get_rect()
         self.rect.topleft = (x, y)
 
@@ -143,7 +149,6 @@ class Portal(pygame.sprite.Sprite): # Also used as master class for some classes
 class Gurterade(Portal):
     def __init__(self, x, y, width, height):
         super().__init__(x, y, width, height)
-        #self.image = pygame.Surface((width, height))
         self.image = pygame.image.load("gurtarade.png")
         self.image = pygame.transform.scale(self.image, (64, 64))
         self.rect = self.image.get_rect()
@@ -151,11 +156,11 @@ class Gurterade(Portal):
 
 
 
-class Spikes(pygame.sprite.Sprite): # Also master class for fake Checkpoint
+class Spikes(pygame.sprite.Sprite):
     def __init__(self, x, y, width, height):
         super().__init__()
         self.image = pygame.Surface((width, height))
-        self.image.fill(RED) #Replace with the actual image
+        self.image.fill(RED)
         self.rect = self.image.get_rect()
         self.rect.topleft = (x, y)
 
@@ -165,7 +170,7 @@ class Platform(pygame.sprite.Sprite):
     def __init__(self, x, y, width, height):
         super().__init__()
         self.image = pygame.Surface((width, height))
-        self.image.fill(GREEN) #Replace with the actual image
+        self.image.fill(GREEN)
         self.rect = self.image.get_rect()
         self.rect.topleft = (x, y)
 
@@ -245,16 +250,17 @@ class Level:
         if self.current_level == 2:
             #Platform(X, Y, Width, Height)
             self.platforms = [ #Placeholder variables
-                Platform(0, HEIGHT - 20, WIDTH, 20),
                 Platform(0, 604, 185, 48),
                 Platform(26, 265, 300, 48),
                 Platform(163, 463, 300, 48),
                 Platform(493, 341, 300, 48),
                 Platform(876, 620, 300, 48)
-
             ]
-            self.portal = Portal(850, 550, 75, 75)
-            self.gurterade = Gurterade(800, 350, 50, 50)
+            self.spikes = [
+                Spikes(-1000, 740, 102400, 10) #This spike is to kill the player when they "fall out of the map."
+            ]
+            self.portal = Portal(903, 556, 75, 75)
+            self.gurterade = Gurterade(80, 202, 50, 50)
             self.background = Background(0,0, 1080, 720)
         if self.current_level == 3:
             #Platform(X, Y, Width, Height)
