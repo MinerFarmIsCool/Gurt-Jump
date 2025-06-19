@@ -125,6 +125,8 @@ class Background(pygame.sprite.Sprite):
     def set_background_image(self, level):
         if level.current_level == 2:
             self.image = pygame.image.load("pixil-frame-0_4.png")
+        if level.current_level == 3:
+            self.image = pygame.image.load("level 3.png")
 
 
 
@@ -206,7 +208,7 @@ class Jumppad():
 class Level:
     def __init__(self):
         #self.current_level = 1
-        self.current_level = 1 #For testing only
+        self.current_level = 3 #For testing only
         self.platforms = []
         self.platform_group = pygame.sprite.Group()
         self.portal = None
@@ -236,7 +238,8 @@ class Level:
                 Platform(294, 291, 280, 48),
                 Platform(587, 457, 327, 48),
                 Platform(59, 552, 327, 48),
-                Platform(0, 100, 295, 233),
+                Platform(0, 100, 270, 233),
+                Platform(270, 150, 15, 100)
                 #Platform(0, )
             ]
             self.spikes = [
@@ -277,9 +280,7 @@ class Level:
 
             ]
             self.gurterade = Gurterade(800, 350, 50, 50)
-
-
-            
+            self.background = Background(0,0, 1080, 720)
 
         self.platform_group = pygame.sprite.Group((self.platforms) +  (self.spikes))
         self.portal_group = pygame.sprite.Group(self.portal)
@@ -353,14 +354,14 @@ def main():
         # Draw
         win.fill(WHITE)
         level.background.set_background_image(level)
-
+        level.background_group.draw(win) # Done here for making hitboxes only, to remove in final release
         level.platform_group.draw(win) #Draw Platforms
         try:
             level.teleporter_group.draw(win)
         except:
             pass
 
-        level.background_group.draw(win)
+        #level.background_group.draw(win)
         level.portal_group.draw(win)
 
         try:
