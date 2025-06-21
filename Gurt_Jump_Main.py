@@ -60,35 +60,40 @@ class Player(pygame.sprite.Sprite):
         self.rect.topleft = (x, y)
         self.vel_y = 0
         self.on_ground = False
+        self.teleport_cooldown = 0
 
     def update(self, platforms, level):
         keys = pygame.key.get_pressed()
-        dx = 0
-        dy = self.vel_y
+        self.dx = 0
+        self.dy = self.vel_y
 
         if keys[pygame.K_LEFT] and self.rect.x > 0:
-            dx -= Player_Speed
-        if keys[pygame.K_RIGHT]:
-            dx += Player_Speed
+            self.dx -= Player_Speed
+        if keys[pygame.K_RIGHT] and self.rect.x < 1024:
+            self.dx += Player_Speed
         if keys[pygame.K_UP] and self.on_ground:
             self.vel_y = Jump_Strength
             self.on_ground = False
 
+
+
         # Apply gravity
         self.vel_y += Gravity
-        dy = self.vel_y
+        self.dy = self.vel_y
 
         # Horizontal movement and collision
-        self.rect.x += dx
+        self.rect.x += self.dx
         for platform in platforms:
             if self.rect.colliderect(platform.rect):
-                if dx > 0:  # Moving right; Hit the left side of the platform
+                if self.dx > 0:  # Moving right; Hit the left side of the platform
                     self.rect.right = platform.rect.left
-                if dx < 0:  # Moving left; Hit the right side of the platform
+                if self.dx < 0:  # Moving left; Hit the right side of the platform
                     self.rect.left = platform.rect.right
 
+
+
         # Vertical movement and collision
-        self.rect.y += dy
+        self.rect.y += self.dy
         self.on_ground = False
         for platform in platforms:
             if self.rect.colliderect(platform.rect):
@@ -100,19 +105,31 @@ class Player(pygame.sprite.Sprite):
                     self.rect.top = platform.rect.bottom
                     self.vel_y = 0
 
+        if self.rect.y < 0:
+            self.vel_y = 0
+            self.rect.y = 0
+
     def Player_Respawn(self, level):
         if level.current_level == 1:
             self.rect.x = 10
             self.rect.y = 10
             self.vel_y = 0
+            self.dx = 0
         if level.current_level == 2:
             self.rect.x = 100
-            self.rect.y = 600
+            self.rect.y = 540
             self.vel_y = 0
-     if level.current_level == 3:
+            self.dx = 0
+        if level.current_level == 3:
             self.rect.x = 218
-            self.rect.y = 71
+            self.rect.y = 58
             self.vel_y = 0
+            self.dx = 0
+        if level.current_level == 4:
+            self.rect.x = 30
+            self.rect.y = 30
+            self.vel_y = 0
+            self.dx = 0
 
 
 
@@ -227,20 +244,19 @@ class Level:
         self.first_teleporter = None
         self.second_teleporter = None
         self.background = None
-        self.jumppad = None
+        self.jumppads = []
         self.load_level()
         self.gerteradeCollected = False
       
         
     def load_level(self): # Loads the level, first by settting variables back to default, then making them again to 'craft' the level
-        #59 552
         self.platforms = []
         self.spikes = []
         self.gurterade = None
         self.first_teleporter = None
         self.second_teleporter = None
         self.gerteradeCollected = False
-        self.jumppad = None
+        self.jumppads = []
         if self.current_level == 1:
             
             #Platform(X, Y, Width, Height)
@@ -263,7 +279,7 @@ class Level:
         if self.current_level == 2:
             #Platform(X, Y, Width, Height)
             self.platforms = [ #Placeholder variables
-                Platform(0, 604, 185, 48),
+                Platform(0, 604, 175, 48),
                 Platform(26, 265, 300, 48),
                 Platform(163, 463, 300, 48),
                 Platform(493, 341, 300, 48),
@@ -303,22 +319,40 @@ class Level:
         if self.current_level == 4:
             #Platform(X, Y, Width, Height)
             self.platforms = [ #Placeholder variables
-                Platform(0, 604, 185, 48),
-                Platform(26, 265, 300, 48),
-                Platform(163, 463, 300, 48),
-                Platform(493, 341, 300, 48),
-                Platform(876, 620, 300, 48)
+                Platform(0, 103, 274, 48),
+                Platform(0, 542, 274, 48),
+                Platform(230, 421, 48, 165),
+                Platform(315, 381, 305, 48),
+                Platform(574, 261, 48, 165),
+                Platform(859, 0, 48, 340),
+                Platform(906, 36, 120, 48),
+                Platform(760, 654, 300, 48)
             ]
             self.spikes = [
-                Spikes(-1000, 740, 102400, 10) #This spike is to kill the player when they "fall out of the map."
+                Spikes(-1000, 740, 102400, 10), #This spike is to kill the player when they "fall out of the map."
+                Spikes(154, 325, 54, 75),
+                Spikes(168, 302, 26, 107),
+                Spikes(385, 200, 59, 54),
+                Spikes(398, 175, 29, 108),
+                Spikes(760, 314, 50, 51),
+                Spikes(770, 286, 30, 107),
+                Spikes(239, 149, 57, 55),
+                Spikes(214, 162, 107, 29)
+
             ]
-            self.portal = Portal(903, 556, 75, 75)
+            self.portal = Portal(910, 120, 64, 64)
             self.gurterade = Gurterade(80, 202, 50, 50)
             self.background = Background(0,0, 1080, 720)
-            self.jumppad = Jumppad(326, 430, 30, 35)
+            self.jumppads = [
+                Jumppad(948, 637, 70, 22),
+                Jumppad(504, 361, 70, 22),
+                Jumppad(71, 527, 70, 22)
 
-        if self.jumppad:
-            self.platform_group = pygame.sprite.Group((self.platforms) + [self.jumppad] + (self.spikes))
+            ]
+            self.first_teleporter = First_Teleporter(31, 162, 150, 64)
+            self.second_teleporter = Second_Teleporter(684, 464, 148, 40)
+        if self.jumppads:
+            self.platform_group = pygame.sprite.Group((self.platforms) + (self.jumppads) + (self.spikes))
         else:
             self.platform_group = pygame.sprite.Group((self.platforms) + (self.spikes))
 
@@ -349,17 +383,15 @@ class timer():
 
 #Game
 def main():
+
     player = Player(10, 10) #This will be over-riden and maybe deleted 
     player_group = pygame.sprite.Group(player)
-
-
 
     timer_font = pygame.font.SysFont("comisans", 40)
     timer_sec = 60
     timer_text = timer_font.render("01:00", True, (0, 0, 0))
     timer = pygame.USEREVENT + 1                                                
     pygame.time.set_timer(timer, 1000)
-
 
     level = Level()
     running = True
@@ -386,7 +418,6 @@ def main():
                 level.load_level()
                 player.Player_Respawn(level)
 
-
         if level.gurterade.check_collision(player):
             level.gerteradeCollected = True # Update later to work
             level.gurterade.rect.topleft = (965,-10) # Moves the Gurterade
@@ -395,24 +426,34 @@ def main():
             if level.portal.check_collision(player):
                 level.next_level(player)
 
-        try:
-            if level.first_teleporter.check_collision(player):
-                player.rect.x = level.second_teleporter.rect.x 
-                player.rect.y = level.second_teleporter.rect.y
-                player.vel_y = 0
-        except:
-            pass
+
+        # We use a cooldown so that the player isnt soft locked
+        if player.teleport_cooldown > 0:
+            player.teleport_cooldown -= 1
 
         try:
-            if level.jumppad.check_collision(player):
-                player.vel_y += (Jump_Strength * 5)
-                player.on_ground = False
+            if level.first_teleporter and level.second_teleporter:
+                if player.teleport_cooldown == 0:
+                    if level.first_teleporter.check_collision(player):
+                        player.rect.x = level.second_teleporter.rect.x
+                        player.rect.y = level.second_teleporter.rect.y
+                        player.vel_y = 0
+                        player.teleport_cooldown = FPS # = to fps so it stays the same in seconds if we edit fps 
+                    elif level.second_teleporter.check_collision(player):
+                        player.rect.x = level.first_teleporter.rect.x
+                        player.rect.y = level.first_teleporter.rect.y
+                        player.vel_y = 0
+                        player.teleport_cooldown = FPS 
         except:
             pass
-
-
-
-
+        
+        for jumppad in level.jumppads:
+            try:
+                if jumppad.check_collision(player):
+                    player.vel_y += (Jump_Strength * 5)
+                    player.on_ground = False
+            except:
+                pass
 
         # Draw
         win.fill(WHITE)
@@ -442,12 +483,9 @@ def main():
 
         pygame.display.flip()  # Update the display
 
-
 main()
 
 #GUI:
-
-
 
 pygame.quit()
 sys.exit()
