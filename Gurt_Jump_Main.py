@@ -11,6 +11,7 @@ from tkinter import messagebox
 import os
 
 
+
 pygame.init()
 
 #Game setup:
@@ -20,12 +21,9 @@ pygame.display.set_caption(f"GURT JUMP WOOOOOOO! Level: ")
 FONT = pygame.font.SysFont("comisans", 40)
 
 
-#INSIDE OF THE GAME LOOP
 
 FPS = 30
 clock = pygame.time.Clock()
-scrn = pygame.display.set_mode((1024, 720))
-import pygame
 
 
 #Various placeholder colours
@@ -37,6 +35,7 @@ RED = (255, 0, 0)
 ORANGE = (100, 64, 0)
 LIGHT_BLUE = (173, 216, 230)
 MAGENTA = (255, 0, 255)
+BLACK = (255, 255, 255)
 
 #Various Global Variables
 Player_Width = 200
@@ -48,6 +47,7 @@ Gravity = 1
 
 
 #Classes
+
 
 
 
@@ -141,13 +141,18 @@ class Background(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.topleft = (x, y)
 
+
     def set_background_image(self, level):
+        if level.current_level == 1:
+            self.image = pygame.image.load("level 1.png")
         if level.current_level == 2:
             self.image = pygame.image.load("level 2.png")
         if level.current_level == 3:
             self.image = pygame.image.load("level 3.png")
         if level.current_level == 4:
             self.image = pygame.image.load("level 4.png")
+
+        return self.image
 
 
 
@@ -377,12 +382,9 @@ class Level:
 
 
 
-class timer():
-    def __init__(self):
-        pass
 
 #Game
-def main():
+def game():
 
     player = Player(10, 10) #This will be over-riden and maybe deleted 
     player_group = pygame.sprite.Group(player)
@@ -394,22 +396,39 @@ def main():
     pygame.time.set_timer(timer, 1000)
 
     level = Level()
+    won_game = False
+    lost_game = False
     running = True
 
     while running:
         clock.tick(FPS)
 
+        level_current = level.get_current_level()
+
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+                pygame.quit()
+                sys.exit()
             if event.type == timer:    # checks for timer event
                 if timer_sec > 0:
                     timer_sec -= 1
                     timer_text = timer_font.render(f"00:{timer_sec:02d}", True, (0, 0, 0))
                     if timer_sec == 0:
+                        lost_game = True
                         running = False
+                        break
                 else:
                     pygame.time.set_timer(timer, 0)    # turns off timer event
+
+
+        if level_current == 5:
+            won_game = True
+            level_current -= 1
+            running = False
+            break
+        
 
         player_group.update(level.platforms, level) #Update player
 
@@ -457,15 +476,15 @@ def main():
 
         # Draw
         win.fill(WHITE)
-        level.background.set_background_image(level)
-        level.background_group.draw(win) # Done here for making hitboxes only, to remove in final release
+        background = level.background.set_background_image(level)
+        #level.background_group.draw(win) # Done here for making hitboxes only, to remove in final release
         level.platform_group.draw(win) #Draw Platforms
         try:
             level.teleporter_group.draw(win)
         except:
             pass
 
-        #level.background_group.draw(win)
+        level.background_group.draw(win)
         level.portal_group.draw(win)
 
         try:
@@ -482,10 +501,145 @@ def main():
         win.blit(timer_text, (30, 30))
 
         pygame.display.flip()  # Update the display
+        pygame.display.set_caption(f"Gurt Jump level: {level_current}")
 
-main()
+    return level_current, won_game, lost_game, timer_sec
+
+
+def main():
+    gui_launch_page()
+    play_game = True
+    while play_game == True:
+        level_current, won_game, lost_game, timer_sec = game()
+        if lost_game == True:
+            gui_lost_the_game(level_current, lost_game, play_game)
+        elif won_game == True:
+            gui_won_the_game(level_current, won_game, timer_sec)
+
+
+
 
 #GUI:
+def gui_launch_page():
+
+    running = True
+
+    while running:
+        win.fill(WHITE)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    running = False
+
+        hello_text = FONT.render("Welcome to Gurt Jump.", True, (0, 0, 0))
+        keybinds_text = FONT.render("To move, use the arrow keys.", True, (0, 0, 0))
+        amount_of_time_text = FONT.render("You have one minute to beat the game.", True, (0, 0, 0))
+        Gurterade_text = FONT.render("Get the gurterade to unlock the portal to the next level!", True, (0, 0, 0))
+        avoid_the_spikes_text = FONT.render("Make sure to avoid the spikes!", True, (0, 0, 0))
+        four_levels_text = FONT.render("There are four levels to beat.", True, (0, 0, 0))
+        space_to_start_text = FONT.render("Press space to start!", True, (0, 0, 0))
+        good_luck_text = FONT.render("Good luck!", True, (0, 0, 0))
+
+        win.blit(hello_text, (100, 100))
+        win.blit(keybinds_text, (100, 150))
+        win.blit(amount_of_time_text, (100, 200))
+        win.blit(Gurterade_text, (100, 250))
+        win.blit(avoid_the_spikes_text, (100, 300))
+        win.blit(four_levels_text, (100, 350))
+        win.blit(space_to_start_text, (100, 400))
+        win.blit(good_luck_text, (100, 450))
+
+        pygame.display.flip()
+
+
+
+
+
+    pass
+
+def gui_lost_the_game(level_current, lost_game, play_game):
+    
+    running = True
+    play_game = False
+    pygame.display.set_caption(f"Lost on level {level_current}")
+
+    while running:
+        win.fill(WHITE)
+        
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    play_game = True
+                    running = False
+
+        you_lost_text = FONT.render("You lost :(", True, (0, 0, 0))
+        on_level_x_text = FONT.render(f"You got up to level: {level_current}", True, (0, 0, 0))
+        try_not_hitting_spikes_text = FONT.render("Try not hiting the spikes this time you fool!", True, (0,0,0))
+        press_space_text = FONT.render("Press space to try again!", True, (0,0,0))
+
+        win.blit(you_lost_text, (100, 100))
+        win.blit(on_level_x_text, (100,150))
+        win.blit(try_not_hitting_spikes_text, (100, 200))
+        win.blit(press_space_text, (100, 250))
+
+        pygame.display.flip()
+
+    return play_game 
+
+        
+
+def gui_won_the_game(level_current, won_game, timer_sec):
+    
+    running = True
+    play_game = False
+    pygame.display.set_caption(f"Lost on level {level_current}")
+    time_to_beat = (timer_sec - 60) * -1
+
+    while running:
+        win.fill(WHITE)
+        
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    play_game = True
+                    running = False
+
+        you_won_text = FONT.render("You WON!!!", True, (0,0,0))
+        time_text = FONT.render(f"It took you: {time_to_beat}", True, (0,0,0))
+        want_to_text = FONT.render("Want to try to beat your time?", True, (0,0,0))
+        press_space_text = FONT.render("Press space to try again!", True, (0,0,0))
+        good_luck_text = FONT.render("Good Luck!", True, (0,0,0))
+
+        win.blit(you_won_text, (100,100))
+        win.blit(time_text, (100,150))
+        win.blit(want_to_text, (100, 200))
+        win.blit(press_space_text, (100,250))
+        win.blit(good_luck_text, (100, 300))
+
+        pygame.display.flip()
+
+
+    return play_game
+
+
+
+
+
+
+
+
+
+main()
 
 pygame.quit()
 sys.exit()
