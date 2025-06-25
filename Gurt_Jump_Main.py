@@ -617,7 +617,3 @@ main()
 
 pygame.quit()
 sys.exit()
-main()
-
-pygame.quit()
-sys.exit()
