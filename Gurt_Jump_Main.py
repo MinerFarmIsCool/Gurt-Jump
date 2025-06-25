@@ -3,12 +3,7 @@
 #place the py file in gurt file
 #Importing Functions
 import pygame
-import random
-import math
 import sys
-import tkinter as tk
-from tkinter import messagebox
-import os
 
 
 
@@ -19,12 +14,8 @@ WIDTH, HEIGHT = 1024, 720
 win = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption(f"GURT JUMP WOOOOOOO! Level: ")
 FONT = pygame.font.SysFont("comisans", 40)
-
-
-
 FPS = 30
 clock = pygame.time.Clock()
-
 
 #Various placeholder colours
 GREEN = (50, 205, 50)
@@ -38,8 +29,6 @@ MAGENTA = (255, 0, 255)
 BLACK = (255, 255, 255)
 
 #Various Global Variables
-Player_Width = 200
-Player_Height = 200
 Player_Speed = 20
 Jump_Strength = -20
 Gravity = 1
@@ -47,10 +36,6 @@ Gravity = 1
 
 
 #Classes
-
-
-
-
 class Player(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()
@@ -62,20 +47,18 @@ class Player(pygame.sprite.Sprite):
         self.on_ground = False
         self.teleport_cooldown = 0
 
-    def update(self, platforms, level):
+    def update(self, platforms):
         keys = pygame.key.get_pressed()
         self.dx = 0
         self.dy = self.vel_y
 
         if keys[pygame.K_LEFT] and self.rect.x > 0:
             self.dx -= Player_Speed
-        if keys[pygame.K_RIGHT] and self.rect.x < 1024:
+        if keys[pygame.K_RIGHT] and self.rect.x < 1024 - 64:
             self.dx += Player_Speed
         if keys[pygame.K_UP] and self.on_ground:
             self.vel_y = Jump_Strength
             self.on_ground = False
-
-
 
         # Apply gravity
         self.vel_y += Gravity
@@ -90,8 +73,6 @@ class Player(pygame.sprite.Sprite):
                 if self.dx < 0:  # Moving left; Hit the right side of the platform
                     self.rect.left = platform.rect.right
 
-
-
         # Vertical movement and collision
         self.rect.y += self.dy
         self.on_ground = False
@@ -105,11 +86,11 @@ class Player(pygame.sprite.Sprite):
                     self.rect.top = platform.rect.bottom
                     self.vel_y = 0
 
-        if self.rect.y < 0:
+        if self.rect.y < 0: # Makes sure you can't go 'above' the screen
             self.vel_y = 0
             self.rect.y = 0
 
-    def Player_Respawn(self, level):
+    def Player_Respawn(self, level): #Simple code to respawn the player, also called when player gets to the next level
         if level.current_level == 1:
             self.rect.x = 10
             self.rect.y = 10
@@ -141,8 +122,8 @@ class Background(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.topleft = (x, y)
 
-
-    def set_background_image(self, level):
+    def set_background_image(self, level): # Sets the background image depending on what level
+        # We have a background image, which includes platforms and such, instead of individual sprites, because it is easier and less resource intensive
         if level.current_level == 1:
             self.image = pygame.image.load("level 1.png")
         if level.current_level == 2:
@@ -156,16 +137,14 @@ class Background(pygame.sprite.Sprite):
 
 
 
-class FakeCheckpoint():
-    pass
 
-
-
-class Portal(pygame.sprite.Sprite):
+class Portal(pygame.sprite.Sprite): # The portal to the next level
     def __init__(self, x, y, width, height):
         super().__init__()
+        self.width = width
+        self.height = height
         self.image = pygame.image.load("checkpoint.png")
-        self.image = pygame.transform.scale(self.image, (64, 64))
+        self.image = pygame.transform.scale(self.image, (self.width, self.height))
         self.rect = self.image.get_rect()
         self.rect.topleft = (x, y)
 
@@ -174,7 +153,7 @@ class Portal(pygame.sprite.Sprite):
 
 
 
-class Gurterade(Portal):
+class Gurterade(Portal): # The gurterade/key for the level
     def __init__(self, x, y, width, height):
         super().__init__(x, y, width, height)
         self.image = pygame.image.load("gurtarade.png")
@@ -184,11 +163,11 @@ class Gurterade(Portal):
 
 
 
-class Spikes(pygame.sprite.Sprite):
+class Spikes(pygame.sprite.Sprite): # This, and the next few classes are repetitive. They are mostly for functions that are defined in the game loop
     def __init__(self, x, y, width, height):
         super().__init__()
         self.image = pygame.Surface((width, height))
-        self.image.fill(RED)
+        #self.image.fill(RED)
         self.rect = self.image.get_rect()
         self.rect.topleft = (x, y)
 
@@ -198,7 +177,7 @@ class Platform(pygame.sprite.Sprite):
     def __init__(self, x, y, width, height):
         super().__init__()
         self.image = pygame.Surface((width, height))
-        self.image.fill(GREEN)
+        #self.image.fill(GREEN)
         self.rect = self.image.get_rect()
         self.rect.topleft = (x, y)
 
@@ -208,8 +187,7 @@ class First_Teleporter(Portal):
     def __init__(self, x, y, width, height):
         super().__init__(x, y, width, height)
         self.image = pygame.Surface((width, height))
-        #self.image = pygame.image.load("blue port.png")
-        self.image.fill(BLUE)
+        #self.image.fill(BLUE)
         self.rect = self.image.get_rect()
         self.rect.topleft = (x, y)
 
@@ -219,8 +197,7 @@ class Second_Teleporter(Portal):
     def __init__(self, x, y, width, height):
         super().__init__(x, y, width, height)
         self.image = pygame.Surface((width, height))
-        #self.image = pygame.image.load("small port 1.png")
-        self.image.fill(ORANGE)
+        #self.image.fill(ORANGE)
         self.rect = self.image.get_rect()
         self.rect.topleft = (x, y)
 
@@ -230,20 +207,18 @@ class Jumppad(Portal):
     def __init__(self, x, y, width, height):
         super().__init__(x, y, width, height)
         self.image = pygame.Surface((width, height))
-        self.image.fill(MAGENTA)
+        #self.image.fill(MAGENTA)
         self.rect = self.image.get_rect()
         self.rect.topleft = (x, y)
 
 
 
-class Level:
+class Level: # The level!
     def __init__(self):
-        #self.current_level = 1
-        self.current_level = 1 #For testing only
+        self.current_level = 1 # The most important variable, depending on its value, we draw and make a different level. Once it reaches 5, game is won.
         self.platforms = []
         self.platform_group = pygame.sprite.Group()
         self.portal = None
-        self.lava = None
         self.gurterade = None
         self.spikes = []
         self.first_teleporter = None
@@ -253,7 +228,6 @@ class Level:
         self.load_level()
         self.gerteradeCollected = False
       
-        
     def load_level(self): # Loads the level, first by settting variables back to default, then making them again to 'craft' the level
         self.platforms = []
         self.spikes = []
@@ -263,27 +237,26 @@ class Level:
         self.gerteradeCollected = False
         self.jumppads = []
         if self.current_level == 1:
-            
-            #Platform(X, Y, Width, Height)
-            self.platforms = [ #Not finished
+            #(X, Y, Width, Height)
+            self.platforms = [ 
                 Platform(294, 291, 280, 48),
                 Platform(587, 457, 327, 48),
                 Platform(59, 552, 327, 48),
                 Platform(0, 100, 270, 233),
                 Platform(270, 150, 15, 100)
-                #Platform(0, )
             ]
             self.spikes = [
-                Spikes(-1000,740, 102400, 10) #This spike is to kill the player when they "fall out of the map."
+                Spikes(-1000,740, 10240, 10) #This spike is to kill the player when they "fall out of the map."
             ]
-            self.portal = Portal(300, 552-75, 75, 75)
-            self.gurterade = Gurterade(800, 350, 50, 50)
+            self.portal = Portal(300-50, 552-63, 64, 64)
+            self.gurterade = Gurterade(800, 350, 64, 64)
             self.first_teleporter = First_Teleporter(903, 312, 81, 138)
             self.second_teleporter = Second_Teleporter(9, 349, 100, 135)
             self.background = Background(0,0, 1080, 720)
+
         if self.current_level == 2:
-            #Platform(X, Y, Width, Height)
-            self.platforms = [ #Placeholder variables
+            #(X, Y, Width, Height)
+            self.platforms = [ 
                 Platform(0, 604, 175, 48),
                 Platform(26, 265, 300, 48),
                 Platform(163, 463, 300, 48),
@@ -293,13 +266,13 @@ class Level:
             self.spikes = [
                 Spikes(-1000, 740, 102400, 10) #This spike is to kill the player when they "fall out of the map."
             ]
-            self.portal = Portal(903, 556, 75, 75)
-            self.gurterade = Gurterade(80, 202, 50, 50)
+            self.portal = Portal(903, 556, 64, 64)
+            self.gurterade = Gurterade(80, 202, 64, 64)
             self.background = Background(0,0, 1080, 720)
+
         if self.current_level == 3:
-            #Platform(X, Y, Width, Height)
-            self.platforms = [ #Placeholder variables
-                Platform(0, HEIGHT - 20, WIDTH, 20),
+            #(X, Y, Width, Height)
+            self.platforms = [ 
                 Platform(148, 122, 306, 49),
                 Platform(405, 1, 46, 167),
                 Platform(-1, 475, 280, 50),
@@ -309,21 +282,23 @@ class Level:
                 Platform(393, 598, 301, 52),
                 Platform(787, 627, 294, 52),
             ]
-            self.portal = Portal(850, 550, 75, 75)
+            self.portal = Portal(850, 550, 64, 64)
             self.spikes = [
+                Spikes(-1000, 740, 102400, 10), #This spike is to kill the player when they "fall out of the map."
                 Spikes(373, -3, 32, 120),
                 Spikes(746, 268, 307, 51),
                 Spikes(367, 330, 53, 57),
                 Spikes(101, 424, 52, 51),
                 
                         ]
-            self.gurterade = Gurterade(800, 350, 50, 50)
+            self.gurterade = Gurterade(800, 350, 64, 64)
             self.background = Background(0,0, 1080, 720)
             self.first_teleporter = First_Teleporter(693, 128, 92, 147)
             self.second_teleporter = Second_Teleporter(331, 457, 108, 140)
+
         if self.current_level == 4:
             #Platform(X, Y, Width, Height)
-            self.platforms = [ #Placeholder variables
+            self.platforms = [
                 Platform(0, 103, 274, 48),
                 Platform(0, 542, 274, 48),
                 Platform(230, 421, 48, 165),
@@ -343,40 +318,42 @@ class Level:
                 Spikes(770, 286, 30, 107),
                 Spikes(239, 149, 57, 55),
                 Spikes(214, 162, 107, 29)
-
             ]
             self.portal = Portal(910, 120, 64, 64)
-            self.gurterade = Gurterade(80, 202, 50, 50)
+            self.gurterade = Gurterade(80, 302, 64, 64)
             self.background = Background(0,0, 1080, 720)
             self.jumppads = [
                 Jumppad(948, 637, 70, 22),
                 Jumppad(504, 361, 70, 22),
                 Jumppad(71, 527, 70, 22)
-
             ]
             self.first_teleporter = First_Teleporter(31, 162, 150, 64)
             self.second_teleporter = Second_Teleporter(684, 464, 148, 40)
-        if self.jumppads:
-            self.platform_group = pygame.sprite.Group((self.platforms) + (self.jumppads) + (self.spikes))
-        else:
-            self.platform_group = pygame.sprite.Group((self.platforms) + (self.spikes))
 
+        #Hashed out code kept incase future expansion happens
+
+        #if self.jumppads:
+            #self.platform_group = pygame.sprite.Group((self.platforms) + (self.jumppads) + (self.spikes))
+        #else:
+            #self.platform_group = pygame.sprite.Group((self.platforms) + (self.spikes))
+        #if self.first_teleporter and self.second_teleporter:
+            #self.teleporter_group = pygame.sprite.Group([self.first_teleporter] + [self.second_teleporter])
+        #else:
+            #self.teleporter_group = None
+        
+        #Needed to draw the sprites
         self.portal_group = pygame.sprite.Group(self.portal)
         if self.gurterade: # Only makes the group if gurterade exists (kinda useless but might do something with it later)
             self.gurterade_group = pygame.sprite.Group(self.gurterade)
-        if self.first_teleporter and self.second_teleporter:
-            self.teleporter_group = pygame.sprite.Group([self.first_teleporter] + [self.second_teleporter])
-        else:
-            self.teleporter_group = None
         self.background_group = pygame.sprite.Group(self.background)
  
-    def next_level(self, player):
+    def next_level(self, player): # Sets the level to the next one, and also forces the player to respawn
         self.current_level += 1
         player.Player_Respawn(self)
 
         self.load_level()
 
-    def get_current_level(self):
+    def get_current_level(self): #Get function. We should've used more.
         return self.current_level
 
 
@@ -386,15 +363,17 @@ class Level:
 #Game
 def game():
 
-    player = Player(10, 10) #This will be over-riden and maybe deleted 
+    player = Player(10, 10) #Create player
     player_group = pygame.sprite.Group(player)
 
+    #Timer init
     timer_font = pygame.font.SysFont("comisans", 40)
     timer_sec = 60
     timer_text = timer_font.render("01:00", True, (0, 0, 0))
     timer = pygame.USEREVENT + 1                                                
     pygame.time.set_timer(timer, 1000)
 
+    #Make the level, and set variables
     level = Level()
     won_game = False
     lost_game = False
@@ -423,22 +402,22 @@ def game():
                     pygame.time.set_timer(timer, 0)    # turns off timer event
 
 
-        if level_current == 5:
+        if level_current == 5: # Code that serves the GUI. This makes it so once you get to level 5, you win, but the display will say you beat level 4.
             won_game = True
             level_current -= 1
             running = False
             break
         
 
-        player_group.update(level.platforms, level) #Update player
+        player_group.update(level.platforms) #Update player
 
-        for spike in level.spikes:
+        for spike in level.spikes: # Kill player if they touch spikes
             if player.rect.colliderect(spike.rect): 
                 level.load_level()
                 player.Player_Respawn(level)
 
         if level.gurterade.check_collision(player):
-            level.gerteradeCollected = True # Update later to work
+            level.gerteradeCollected = True 
             level.gurterade.rect.topleft = (965,-10) # Moves the Gurterade
 
         if level.gerteradeCollected == True: # Checks to see if player collides with goal only when gurterade collected
@@ -454,13 +433,13 @@ def game():
             if level.first_teleporter and level.second_teleporter:
                 if player.teleport_cooldown == 0:
                     if level.first_teleporter.check_collision(player):
-                        player.rect.x = level.second_teleporter.rect.x
-                        player.rect.y = level.second_teleporter.rect.y
+                        player.rect.x = level.second_teleporter.rect.x + 10
+                        player.rect.y = level.second_teleporter.rect.y + 10
                         player.vel_y = 0
                         player.teleport_cooldown = FPS # = to fps so it stays the same in seconds if we edit fps 
                     elif level.second_teleporter.check_collision(player):
-                        player.rect.x = level.first_teleporter.rect.x
-                        player.rect.y = level.first_teleporter.rect.y
+                        player.rect.x = level.first_teleporter.rect.x + 10
+                        player.rect.y = level.first_teleporter.rect.y + 10
                         player.vel_y = 0
                         player.teleport_cooldown = FPS 
         except:
@@ -469,24 +448,21 @@ def game():
         for jumppad in level.jumppads:
             try:
                 if jumppad.check_collision(player):
-                    player.vel_y += (Jump_Strength * 5)
+                    player.vel_y += (Jump_Strength * 5) # This logic can easily be changed to edit the jump pad's strength. Another way would be to do it in the level class to make it level specific (or do the same in the jumppad class)
                     player.on_ground = False
             except:
                 pass
 
-        # Draw
+        # Draw the screen
         win.fill(WHITE)
-        background = level.background.set_background_image(level)
-        #level.background_group.draw(win) # Done here for making hitboxes only, to remove in final release
+        level.background.set_background_image(level)   
         level.platform_group.draw(win) #Draw Platforms
         try:
             level.teleporter_group.draw(win)
         except:
             pass
-
         level.background_group.draw(win)
         level.portal_group.draw(win)
-
         try:
             level.gurterade_group.draw(win) # Draw gurterade
         except:
@@ -496,9 +472,10 @@ def game():
 
         #Things for testing (delete after full release)
 
-        coor = FONT.render(f"Coordinates: {player.rect.x}, {player.rect.y}", True, (0, 0, 0))
-        win.blit(coor, (700, 100))
-        win.blit(timer_text, (30, 30))
+        #coor = FONT.render(f"Coordinates: {player.rect.x}, {player.rect.y}", True, (0, 0, 0))
+        #win.blit(coor, (700, 100))
+        
+        win.blit(timer_text, (900, 10))
 
         pygame.display.flip()  # Update the display
         pygame.display.set_caption(f"Gurt Jump level: {level_current}")
@@ -506,15 +483,15 @@ def game():
     return level_current, won_game, lost_game, timer_sec
 
 
-def main():
-    gui_launch_page()
-    play_game = True
+def main(): # The main function
+    gui_launch_page() # "Main menu GUI"
+    play_game = True # Sets it up so that when you press space in the other gui's, it will play the game again
     while play_game == True:
         level_current, won_game, lost_game, timer_sec = game()
         if lost_game == True:
-            gui_lost_the_game(level_current, lost_game, play_game)
+            gui_lost_the_game(level_current, play_game)
         elif won_game == True:
-            gui_won_the_game(level_current, won_game, timer_sec)
+            gui_won_the_game(timer_sec)
 
 
 
@@ -523,6 +500,8 @@ def main():
 def gui_launch_page():
 
     running = True
+    pygame.display.set_caption("Welcome to Gurt Jump!") # Set display
+
 
     while running:
         win.fill(WHITE)
@@ -531,11 +510,12 @@ def gui_launch_page():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
-            if event.type == pygame.KEYDOWN:
+            if event.type == pygame.KEYDOWN: # Check to see if player presses space
                 if event.key == pygame.K_SPACE:
                     running = False
 
-        hello_text = FONT.render("Welcome to Gurt Jump.", True, (0, 0, 0))
+        # Text setup
+        hello_text = FONT.render("Welcome to Gurt Jump.", True, (0, 0, 0)) 
         keybinds_text = FONT.render("To move, use the arrow keys.", True, (0, 0, 0))
         amount_of_time_text = FONT.render("You have one minute to beat the game.", True, (0, 0, 0))
         Gurterade_text = FONT.render("Get the gurterade to unlock the portal to the next level!", True, (0, 0, 0))
@@ -544,6 +524,7 @@ def gui_launch_page():
         space_to_start_text = FONT.render("Press space to start!", True, (0, 0, 0))
         good_luck_text = FONT.render("Good luck!", True, (0, 0, 0))
 
+        # Text rendering
         win.blit(hello_text, (100, 100))
         win.blit(keybinds_text, (100, 150))
         win.blit(amount_of_time_text, (100, 200))
@@ -557,11 +538,7 @@ def gui_launch_page():
 
 
 
-
-
-    pass
-
-def gui_lost_the_game(level_current, lost_game, play_game):
+def gui_lost_the_game(level_current, play_game):
     
     running = True
     play_game = False
@@ -574,16 +551,18 @@ def gui_lost_the_game(level_current, lost_game, play_game):
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
-            if event.type == pygame.KEYDOWN:
+            if event.type == pygame.KEYDOWN: # Checks if player presses space
                 if event.key == pygame.K_SPACE:
                     play_game = True
                     running = False
 
+        # Text setup
         you_lost_text = FONT.render("You lost :(", True, (0, 0, 0))
         on_level_x_text = FONT.render(f"You got up to level: {level_current}", True, (0, 0, 0))
         try_not_hitting_spikes_text = FONT.render("Try not hiting the spikes this time you fool!", True, (0,0,0))
         press_space_text = FONT.render("Press space to try again!", True, (0,0,0))
 
+        # Text render
         win.blit(you_lost_text, (100, 100))
         win.blit(on_level_x_text, (100,150))
         win.blit(try_not_hitting_spikes_text, (100, 200))
@@ -593,14 +572,14 @@ def gui_lost_the_game(level_current, lost_game, play_game):
 
     return play_game 
 
-        
 
-def gui_won_the_game(level_current, won_game, timer_sec):
+
+def gui_won_the_game(timer_sec):
     
     running = True
     play_game = False
-    pygame.display.set_caption(f"Lost on level {level_current}")
-    time_to_beat = (timer_sec - 60) * -1
+    time_to_beat = (timer_sec - 60) * -1 # Makes it so that the time to beat is how long it took rather than how long is left
+    pygame.display.set_caption(f"Won in {time_to_beat} seconds!")
 
     while running:
         win.fill(WHITE)
@@ -614,12 +593,14 @@ def gui_won_the_game(level_current, won_game, timer_sec):
                     play_game = True
                     running = False
 
+        # Text setup
         you_won_text = FONT.render("You WON!!!", True, (0,0,0))
-        time_text = FONT.render(f"It took you: {time_to_beat}", True, (0,0,0))
+        time_text = FONT.render(f"It took you: {time_to_beat} seconds!", True, (0,0,0))
         want_to_text = FONT.render("Want to try to beat your time?", True, (0,0,0))
         press_space_text = FONT.render("Press space to try again!", True, (0,0,0))
         good_luck_text = FONT.render("Good Luck!", True, (0,0,0))
 
+        # Text rendering
         win.blit(you_won_text, (100,100))
         win.blit(time_text, (100,150))
         win.blit(want_to_text, (100, 200))
@@ -631,14 +612,11 @@ def gui_won_the_game(level_current, won_game, timer_sec):
 
     return play_game
 
+#Call main function
+main()
 
-
-
-
-
-
-
-
+pygame.quit()
+sys.exit()
 main()
 
 pygame.quit()
